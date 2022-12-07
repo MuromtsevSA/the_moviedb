@@ -41,8 +41,10 @@ class _HeaderWidget extends StatelessWidget {
           const SizedBox(
             height: 25,
           ),
-          const Text("Hello", style: textStyle),
-          const SizedBox(height: 25),
+          const Text(
+              "In order to use the editing and rating capabilities of TMDB, as well as get personal recommendations you will need to login to your account. If you do not have an account, registering for an account is free and simple",
+              style: textStyle),
+          const SizedBox(height: 5),
           TextButton(
             onPressed: (() => {}),
             child: const Text(
@@ -50,8 +52,16 @@ class _HeaderWidget extends StatelessWidget {
               textAlign: TextAlign.start,
             ),
           ),
-          const SizedBox(height: 25),
-          const Text("Hello", style: textStyle),
+          const SizedBox(height: 5),
+          const Text("If you signed up but didn't get your verification email.",
+              style: textStyle),
+          const SizedBox(
+            height: 5,
+          ),
+          TextButton(
+            onPressed: (() => {}),
+            child: const Text("verify email"),
+          )
         ],
       ),
     );
@@ -105,7 +115,7 @@ class _FormWidget extends StatelessWidget {
             height: 5,
           ),
           TextField(
-            controller: model.resetPassController,
+            controller: model.passController,
             obscureText: true,
             decoration: textDecorator,
           ),
@@ -136,18 +146,9 @@ class _AuthButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<AuthModel>();
-    final child = model.canStartAuth == true
-        ? const SizedBox(
-            width: 15,
-            height: 15,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-            ),
-          )
-        : const Text("Login");
     return ElevatedButton(
-      onPressed: model.canStartAuth == true ? () => model.auth(context) : null,
-      child: child,
+      onPressed: model.canStartAuth != true ? () => model.auth(context) : null,
+      child: const Text("Login"),
       style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all(Colors.blueAccent),
           foregroundColor: MaterialStateProperty.all(Colors.white),

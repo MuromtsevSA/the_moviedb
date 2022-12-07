@@ -1,28 +1,27 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-
 import '../../domain/api_client/api_client.dart';
 import '../../domain/data_provider/session_data_providers.dart';
 
 class AuthModel extends ChangeNotifier {
-  final _apiClient = new ApiClient();
-  final _sessionDataProvider = new SessionDataProvider();
+  final _apiClient = ApiClient();
+  final _sessionDataProvider = SessionDataProvider();
 
   final TextEditingController _authController = TextEditingController();
   TextEditingController get authController => _authController;
 
-  final TextEditingController _resetPassController = TextEditingController();
-  TextEditingController get resetPassController => _resetPassController;
+  final TextEditingController _passController = TextEditingController();
+  TextEditingController get passController => _passController;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  bool _isAuth = false;
+  bool _isAuth = true;
   bool get canStartAuth => !_isAuth;
+  bool get isAuthProgress => _isAuth;
 
   Future<void> auth(BuildContext context) async {
-    if (_authController.text.isEmpty || _resetPassController.text.isEmpty) {
+    if (_authController.text.isEmpty || _passController.text.isEmpty) {
       _errorMessage = "Заполните логин и пароль";
       notifyListeners();
       return;
@@ -33,7 +32,7 @@ class AuthModel extends ChangeNotifier {
     String? sessionId;
     try {
       sessionId = await _apiClient.auth(
-          username: _authController.text, password: _resetPassController.text);
+          username: _authController.text, password: _passController.text);
     } catch (e) {
       _errorMessage = e.toString();
     }
