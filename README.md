@@ -1,6 +1,6 @@
 # flutter_application_1
 
-A new Flutter project.
+Разрабатываю проект в целях изучения flutter
 
 ## Getting Started
 
