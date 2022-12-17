@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/widget/auth/auth_model.dart';
-import 'package:flutter_application_1/widget/mainscreen/main_screen_widget.dart';
 import 'package:provider/provider.dart';
 
 class AuthWidget extends StatefulWidget {
@@ -165,7 +164,7 @@ class _MessageErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final errorMessage = context.watch<AuthModel>().errorMessage.toString();
-    if (errorMessage == null) return const SizedBox.shrink();
+    if (errorMessage.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Text(

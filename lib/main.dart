@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/Navigation/navigation.dart';
 import 'package:flutter_application_1/widget/auth/auth_model.dart';
-import 'package:flutter_application_1/widget/auth/auth_widget.dart';
-import 'package:flutter_application_1/widget/mainscreen/main_screen_widget.dart';
-import 'package:flutter_application_1/widget/movie_datails/movie_datails_widget.dart';
+import 'package:flutter_application_1/widget/movieList/movie_list_model.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'domain/data_provider/my_app_model.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final model = MyAppModel();
+  await model.checkAuth();
+  // final modelList = MovieListModel();
+  // await modelList.loadMovies();
+  runApp(MyApp(model: model));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final MyAppModel model;
+  static final mainNavigation = MainNavigation();
+  const MyApp({super.key, required this.model});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AuthModel(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthModel()),
+        ChangeNotifierProvider(create: (context) => MovieListModel())
+      ],
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
@@ -28,19 +39,17 @@ class MyApp extends StatelessWidget {
             unselectedItemColor: Colors.white,
           ),
         ),
-        routes: {
-          "/auth": ((context) => const AuthWidget()),
-          "/main_screen": ((context) => const MainScreenWidget()),
-          "/main_screen/movie_datails": (context) {
-            final arguments = ModalRoute.of(context)?.settings.arguments;
-            if (arguments is int) {
-              return MovieDatailsWidget(movieId: arguments);
-            } else {
-              return const MovieDatailsWidget(movieId: 0);
-            }
-          },
-        },
-        initialRoute: "/auth",
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('ru', 'RU'), // English, no country code
+          Locale('en', ''), // Spanish, no country code
+        ],
+        routes: mainNavigation.routes,
+        initialRoute: mainNavigation.initialRout(model.isAuth),
       ),
     );
   }
