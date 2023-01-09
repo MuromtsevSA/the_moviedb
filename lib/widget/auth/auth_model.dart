@@ -23,7 +23,6 @@ class AuthModel extends ChangeNotifier {
   bool get canStartAuth => !_isAuth;
   bool get isAuthProgress => _isAuth;
 
-
   Future<void> auth(BuildContext context) async {
     if (_authController.text.isEmpty || _passController.text.isEmpty) {
       _errorMessage = "Заполните логин и пароль";
@@ -34,9 +33,11 @@ class AuthModel extends ChangeNotifier {
     _isAuth = true;
     notifyListeners();
     String? sessionId;
+    int? accountId;
     try {
       sessionId = await _apiClient.auth(
           username: _authController.text, password: _passController.text);
+      accountId = await _apiClient.getAccountInfo(sessionId);
     } on ApiClientException catch (e) {
       switch (e.type) {
         case ApiClientExceptionType.Network:
@@ -59,12 +60,13 @@ class AuthModel extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    if (sessionId == null) {
+    if (sessionId == null || accountId == null) {
       _errorMessage = "Неизвестная ошибка";
       notifyListeners();
       return;
     }
     await _sessionDataProvider.setSessionId(sessionId);
+    await _sessionDataProvider.setAccountId(accountId);
     unawaited(Navigator.of(context)
         .pushReplacementNamed(MainNavigationRoutName.mainscreen));
   }
