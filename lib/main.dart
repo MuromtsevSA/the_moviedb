@@ -10,23 +10,23 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final model = MyAppModel();
   await model.checkAuth();
-  // final modelList = MovieListModel();
-  // await modelList.loadMovies();
-  runApp(MyApp(model: model));
+  final widget =
+      Provider(create: (context) => MyAppModel(), child: const MyApp());
+  runApp(widget);
 }
 
 class MyApp extends StatelessWidget {
-  final MyAppModel model;
   static final mainNavigation = MainNavigation();
-  const MyApp({super.key, required this.model});
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final model = context.read<MyAppModel>();
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AuthModel()),
-        ChangeNotifierProvider(create: (context) => MovieListModel())
+        ChangeNotifierProvider(create: (context) => MovieListModel()),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

@@ -164,7 +164,8 @@ class _MessageErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final errorMessage = context.watch<AuthModel>().errorMessage.toString();
-    if (errorMessage.isEmpty) return const SizedBox.shrink();
+    if (errorMessage.isEmpty || errorMessage == "null")
+      return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Text(

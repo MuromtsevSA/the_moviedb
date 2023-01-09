@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/domain/api_client/api_client.dart';
+import 'package:flutter_application_1/domain/entity/movie_details_credits.dart';
 import 'package:flutter_application_1/resources/resources.dart';
+import 'package:flutter_application_1/widget/movieTrailer/movie_trailer.dart';
+import 'package:flutter_application_1/Navigation/navigation.dart';
+import 'package:provider/provider.dart';
+
+import 'movie_details_model.dart';
 
 class MovieDatailsInfoWidget extends StatelessWidget {
   const MovieDatailsInfoWidget({super.key});
@@ -14,26 +21,22 @@ class MovieDatailsInfoWidget extends StatelessWidget {
           padding: EdgeInsets.all(25.0),
           child: _MovieNameWdget(),
         ),
+        const _VideoPlayWidget(),
         const _SummaryWidget(),
         Padding(
           padding: const EdgeInsets.all(10.0),
           child: _OverviewWidget(),
         ),
-        Padding(
-          padding: const EdgeInsets.all(10.0),
+        const Padding(
+          padding: EdgeInsets.all(10.0),
           child: _DescriptionWidget(),
         ),
         const SizedBox(height: 30),
-        const _PeopleWidget(),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: _PeopleWidget(),
+        ),
       ],
-    );
-  }
-
-  Text _DescriptionWidget() {
-    return const Text(
-      "data",
-      style: TextStyle(
-          fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white),
     );
   }
 
@@ -51,16 +54,36 @@ class _TopPoster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: const [
-        Image(image: AssetImage(Images.mortal)),
-        Positioned(
-          top: 20,
-          left: 20,
-          bottom: 20,
-          child: Image(image: AssetImage(Images.mortal)),
-        )
-      ],
+    final model = context.watch<MovieDetailsModel>();
+    final backdropPath = model.movieDetails?.backdropPath;
+    final posterPath = model.movieDetails?.posterPath;
+    return AspectRatio(
+      aspectRatio: 390 / 219,
+      child: Stack(
+        children: [
+          backdropPath != null
+              ? Image.network(ApiClient.imgUrl(backdropPath.toString()))
+              : const SizedBox.shrink(),
+          Positioned(
+            top: 20,
+            left: 20,
+            bottom: 20,
+            child: posterPath != null
+                ? Image.network(ApiClient.imgUrl(posterPath.toString()))
+                : const SizedBox.shrink(),
+          ),
+          Positioned(
+            top: 5,
+            right: 5,
+            child: IconButton(
+              onPressed: () => model.toggleFavorite(),
+              icon: Icon(model.isFavorite == true
+                  ? Icons.favorite
+                  : Icons.favorite_border_outlined),
+            ),
+          )
+        ],
+      ),
     );
   }
 }
@@ -70,19 +93,60 @@ class _MovieNameWdget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RichText(
-      textAlign: TextAlign.center,
-      text: const TextSpan(children: [
-        TextSpan(
-          text: "mortal combat ",
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+    final model = context.watch<MovieDetailsModel>();
+    var year = model.movieDetails?.releaseDate?.year.toString();
+    year = year != null ? ' ($year)' : '';
+    return Center(
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(children: [
+          TextSpan(
+            text: model.movieDetails?.title ?? ' ',
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+          ),
+          TextSpan(
+            text: year,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+          )
+        ]),
+        maxLines: 3,
+      ),
+    );
+  }
+}
+
+class _VideoPlayWidget extends StatelessWidget {
+  const _VideoPlayWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final model = context.watch<MovieDetailsModel>();
+    final videos = model.movieDetails?.videos.results
+        .where((video) => video.type == "Trailer" && video.site == "YouTube");
+    final trailerKey = videos?.isNotEmpty == true ? videos?.first.key : null;
+    return ColoredBox(
+      color: const Color.fromARGB(255, 32, 31, 37),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            trailerKey != null
+                ? TextButton(
+                    onPressed: () => Navigator.of(context).pushNamed(
+                        MainNavigationRoutName.movieTrailer,
+                        arguments: trailerKey),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.play_arrow),
+                        Text("Play trailer", style: TextStyle(fontSize: 17)),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ],
         ),
-        TextSpan(
-          text: " (2020)",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-        )
-      ]),
-      maxLines: 3,
+      ),
     );
   }
 }
@@ -92,15 +156,41 @@ class _SummaryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: Color.fromRGBO(22, 21, 25, 1.0),
+    final model = context.watch<MovieDetailsModel>();
+    if (model == null) return const SizedBox.shrink();
+    var texts = <String>[];
+    final releaseDate = model.movieDetails?.releaseDate;
+    if (releaseDate != null) {
+      texts.add(model.stringFromDate(releaseDate));
+    }
+    final country = model.movieDetails?.productionCountries;
+    if (country != null && country.isNotEmpty) {
+      texts.add('(${country.first.iso})');
+    }
+    final runtime = model.movieDetails?.runtime ?? 0;
+    final duration = Duration(minutes: runtime);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    texts.add('${hours}h ${minutes}m');
+
+    final genres = model.movieDetails?.genres;
+    if (genres != null && genres.isNotEmpty) {
+      var genresNames = <String>[];
+      for (var genre in genres) {
+        genresNames.add(genre.name);
+      }
+      texts.add(genresNames.join(', '));
+    }
+    return ColoredBox(
+      color: const Color.fromRGBO(22, 21, 25, 1.0),
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 70),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         child: Text(
-          "16+ 5.05.2020 (US) 1h49m Fanatastic",
+          texts.join(' '),
           maxLines: 3,
           textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+          style: const TextStyle(
+              fontWeight: FontWeight.w400, fontSize: 16, color: Colors.white),
         ),
       ),
     );
@@ -112,52 +202,80 @@ class _PeopleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nameStyle = TextStyle(
-        fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white);
-    final jobStyle = TextStyle(
-        fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white);
-    return Column(children: [
-      Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Stefano", style: nameStyle),
-              Text("Director", style: jobStyle),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Stefano", style: nameStyle),
-              Text("Director", style: jobStyle),
-            ],
+    final model = context.watch<MovieDetailsModel>();
+    var employee = model.movieDetails?.credits.crew;
+    if (employee == null || employee.isEmpty) return const SizedBox.shrink();
+    employee = employee.length > 4 ? employee.sublist(0, 4) : employee;
+    var crewChank = <List<Employee>>[];
+    for (var i = 0; i < employee.length; i += 2) {
+      crewChank.add(employee.sublist(
+          i, i + 2 > employee.length ? employee.length : i + 2));
+    }
+    return Column(
+        children: crewChank
+            .map((e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: _PeopleWidgetRow(employes: e),
+                ))
+            .toList());
+  }
+}
+
+class _DescriptionWidget extends StatelessWidget {
+  const _DescriptionWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final model = context.watch<MovieDetailsModel>();
+    return Text(
+      model.movieDetails?.overview ?? '',
+      style: const TextStyle(
+          fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white),
+    );
+  }
+}
+
+class _PeopleWidgetRow extends StatelessWidget {
+  final List<Employee> employes;
+  const _PeopleWidgetRow({super.key, required this.employes});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      children: employes
+          .map(
+            (e) => _PeopleWidgetRowItem(employee: e),
           )
-        ],
-      ),
-      const SizedBox(height: 20),
-      Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          .toList(),
+    );
+  }
+}
+
+class _PeopleWidgetRowItem extends StatelessWidget {
+  final Employee employee;
+  const _PeopleWidgetRowItem({super.key, required this.employee});
+
+  @override
+  Widget build(BuildContext context) {
+    const nameStyle = TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      color: Colors.white,
+    );
+    const jobStyle = TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      color: Colors.white,
+    );
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Stefano", style: nameStyle),
-              Text("Director", style: jobStyle),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Stefano", style: nameStyle),
-              Text("Director", style: jobStyle),
-            ],
-          ),
+          Text(employee.name, style: nameStyle),
+          Text(employee.job, style: jobStyle),
         ],
       ),
-    ]);
+    );
   }
 }

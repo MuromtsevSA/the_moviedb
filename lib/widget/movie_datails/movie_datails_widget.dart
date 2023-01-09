@@ -1,34 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/widget/movie_datails/movie_datails_info_widget.dart';
 import 'package:flutter_application_1/widget/movie_datails/movie_datails_screencast_widget.dart';
+import 'package:flutter_application_1/widget/movie_datails/movie_details_model.dart';
+import 'package:provider/provider.dart';
 
-class MovieDatailsWidget extends StatefulWidget {
+class MovieDatailsWidget extends StatelessWidget {
   final int movieId;
   const MovieDatailsWidget({super.key, required this.movieId});
-
-  @override
-  State<MovieDatailsWidget> createState() => _MovieDatailsWidgetState();
-}
-
-class _MovieDatailsWidgetState extends State<MovieDatailsWidget> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Movie Data"),
-      ),
-      body: ColoredBox(
-        color: const Color.fromRGBO(24, 23, 27, 1.0),
-        child: ListView(
-          children: const [
-            MovieDatailsInfoWidget(),
-            SizedBox(
-              height: 30,
+    final model = context.watch<MovieDetailsModel>();
+    return FutureBuilder(
+      future: model.setupLocale(context),
+      builder: (context, data) => data.connectionState == ConnectionState.done
+          ? Scaffold(
+              appBar: AppBar(
+                title: const _TitleWidget(),
+              ),
+              body: const ColoredBox(
+                color: Color.fromRGBO(24, 23, 27, 1.0),
+                child: _BodyWidget(),
+              ),
+            )
+          : const Center(
+              child: CircularProgressIndicator(),
             ),
-            MovieDatailsScreenCastWidget(),
-          ],
-        ),
-      ),
+    );
+  }
+}
+
+class _TitleWidget extends StatelessWidget {
+  const _TitleWidget({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final model = context.watch<MovieDetailsModel>();
+    return Text(model.movieDetails?.title ?? "загрузка...");
+  }
+}
+
+class _BodyWidget extends StatelessWidget {
+  const _BodyWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: const [
+        MovieDatailsInfoWidget(),
+        SizedBox(height: 30),
+        MovieDatailsScreenCastWidget(),
+      ],
     );
   }
 }
