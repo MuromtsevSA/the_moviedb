@@ -33,8 +33,9 @@ class _TitleWidget extends StatelessWidget {
   const _TitleWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    final model = context.watch<MovieDetailsModel>();
-    return Text(model.movieDetails?.title ?? "загрузка...");
+    final title = context.select((MovieDetailsModel model) =>
+        model.movieDetails?.details.title ?? "Загрузка...");
+    return Text(title);
   }
 }
 

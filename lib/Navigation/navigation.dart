@@ -1,43 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/domain/data_provider/my_app_model.dart';
-import 'package:flutter_application_1/widget/movie_datails/movie_details_model.dart';
-import 'package:provider/provider.dart';
-
-import '../widget/auth/auth_widget.dart';
-import '../widget/mainscreen/main_screen_widget.dart';
-import '../widget/movie_datails/movie_datails_widget.dart';
-import 'package:flutter_application_1/widget/movieTrailer/movie_trailer.dart';
+import 'package:flutter_application_1/domain/factory/screen_factory.dart';
 
 abstract class MainNavigationRoutName {
-  static const auth = "auth";
-  static const mainscreen = '/';
-  static const movieDatails = '/movie_datails';
-  static const movieTrailer = '/movie_datails/movie_trailer';
+  static const loaderWidget = '/';
+  static const auth = "/auth";
+  static const mainscreen = '/main_screen';
+  static const movieDatails = '/main_screen/movie_datails';
+  static const movieTrailer = '/main_screen/movie_datails/movie_trailer';
 }
 
 class MainNavigation {
-  String initialRout(isAuth) =>
-      isAuth ? MainNavigationRoutName.mainscreen : MainNavigationRoutName.auth;
+  static final _screenFactory = ScreenFactory();
   final routes = <String, Widget Function(BuildContext)>{
-    MainNavigationRoutName.auth: ((context) => const AuthWidget()),
-    MainNavigationRoutName.mainscreen: ((context) => const MainScreenWidget()),
+    MainNavigationRoutName.loaderWidget: ((_) => _screenFactory.makeLoader()),
+    MainNavigationRoutName.auth: ((_) => _screenFactory.makeAuth()),
+    MainNavigationRoutName.mainscreen: ((_) => _screenFactory.makeMainScreen()),
     MainNavigationRoutName.movieDatails: (context) {
       final arguments = ModalRoute.of(context)?.settings.arguments;
-      if (arguments is int) {
-        return ChangeNotifierProvider<MovieDetailsModel>(
-            create: (context) => MovieDetailsModel(arguments),
-            child: MovieDatailsWidget(movieId: arguments));
-      } else {
-        return const MovieDatailsWidget(movieId: 0);
-      }
+      return _screenFactory.makeMovieDetails(arguments);
     },
     MainNavigationRoutName.movieTrailer: ((context) {
       final arguments = ModalRoute.of(context)?.settings.arguments;
-      if (arguments is String) {
-        return MovieTrailer(youtubeKey: arguments);
-      } else {
-        return const MovieTrailer(youtubeKey: '');
-      }
+      return _screenFactory.makeMovieTrailer(arguments);
     })
   };
+
+  static void resetNavigation(BuildContext context) {
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      MainNavigationRoutName.loaderWidget,
+      (route) => false,
+    );
+  }
 }

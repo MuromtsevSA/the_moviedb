@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/domain/api_client/api_client.dart';
 import 'package:flutter_application_1/domain/entity/movie_details_credits.dart';
-import 'package:flutter_application_1/resources/resources.dart';
-import 'package:flutter_application_1/widget/movieTrailer/movie_trailer.dart';
 import 'package:flutter_application_1/Navigation/navigation.dart';
+import 'package:flutter_application_1/widget/movie_datails/movie_details_model.dart';
 import 'package:provider/provider.dart';
-
-import 'movie_details_model.dart';
 
 class MovieDatailsInfoWidget extends StatelessWidget {
   const MovieDatailsInfoWidget({super.key});
@@ -55,8 +52,8 @@ class _TopPoster extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<MovieDetailsModel>();
-    final backdropPath = model.movieDetails?.backdropPath;
-    final posterPath = model.movieDetails?.posterPath;
+    final backdropPath = model.movieDetails?.details.backdropPath;
+    final posterPath = model.movieDetails?.details.posterPath;
     return AspectRatio(
       aspectRatio: 390 / 219,
       child: Stack(
@@ -76,7 +73,7 @@ class _TopPoster extends StatelessWidget {
             top: 5,
             right: 5,
             child: IconButton(
-              onPressed: () => model.toggleFavorite(),
+              onPressed: () => model.toggleFavorite(context),
               icon: Icon(model.isFavorite == true
                   ? Icons.favorite
                   : Icons.favorite_border_outlined),
@@ -94,14 +91,14 @@ class _MovieNameWdget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<MovieDetailsModel>();
-    var year = model.movieDetails?.releaseDate?.year.toString();
+    var year = model.movieDetails?.details.releaseDate?.year.toString();
     year = year != null ? ' ($year)' : '';
     return Center(
       child: RichText(
         textAlign: TextAlign.center,
         text: TextSpan(children: [
           TextSpan(
-            text: model.movieDetails?.title ?? ' ',
+            text: model.movieDetails?.details.title ?? ' ',
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
           ),
           TextSpan(
@@ -121,7 +118,7 @@ class _VideoPlayWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<MovieDetailsModel>();
-    final videos = model.movieDetails?.videos.results
+    final videos = model.movieDetails?.details.videos.results
         .where((video) => video.type == "Trailer" && video.site == "YouTube");
     final trailerKey = videos?.isNotEmpty == true ? videos?.first.key : null;
     return ColoredBox(
@@ -159,21 +156,21 @@ class _SummaryWidget extends StatelessWidget {
     final model = context.watch<MovieDetailsModel>();
     if (model == null) return const SizedBox.shrink();
     var texts = <String>[];
-    final releaseDate = model.movieDetails?.releaseDate;
+    final releaseDate = model.movieDetails?.details.releaseDate;
     if (releaseDate != null) {
       texts.add(model.stringFromDate(releaseDate));
     }
-    final country = model.movieDetails?.productionCountries;
+    final country = model.movieDetails?.details.productionCountries;
     if (country != null && country.isNotEmpty) {
       texts.add('(${country.first.iso})');
     }
-    final runtime = model.movieDetails?.runtime ?? 0;
+    final runtime = model.movieDetails?.details.runtime ?? 0;
     final duration = Duration(minutes: runtime);
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     texts.add('${hours}h ${minutes}m');
 
-    final genres = model.movieDetails?.genres;
+    final genres = model.movieDetails?.details.genres;
     if (genres != null && genres.isNotEmpty) {
       var genresNames = <String>[];
       for (var genre in genres) {
@@ -203,7 +200,7 @@ class _PeopleWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<MovieDetailsModel>();
-    var employee = model.movieDetails?.credits.crew;
+    var employee = model.movieDetails?.details.credits.crew;
     if (employee == null || employee.isEmpty) return const SizedBox.shrink();
     employee = employee.length > 4 ? employee.sublist(0, 4) : employee;
     var crewChank = <List<Employee>>[];
@@ -228,7 +225,7 @@ class _DescriptionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final model = context.watch<MovieDetailsModel>();
     return Text(
-      model.movieDetails?.overview ?? '',
+      model.movieDetails?.details.overview ?? '',
       style: const TextStyle(
           fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white),
     );

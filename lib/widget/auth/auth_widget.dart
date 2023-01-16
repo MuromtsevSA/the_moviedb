@@ -72,7 +72,7 @@ class _FormWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = context.read<AuthModel>();
+    final model = context.read<AuthViewModel>();
     const textStyle = TextStyle(fontSize: 16, color: Colors.black);
     const textDecorator = InputDecoration(
       border: OutlineInputBorder(
@@ -144,7 +144,7 @@ class _AuthButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = context.watch<AuthModel>();
+    final model = context.watch<AuthViewModel>();
     return ElevatedButton(
       onPressed: model.canStartAuth != true ? () => model.auth(context) : null,
       child: const Text("Login"),
@@ -160,16 +160,14 @@ class _AuthButtonWidget extends StatelessWidget {
 
 class _MessageErrorWidget extends StatelessWidget {
   const _MessageErrorWidget({super.key});
-
   @override
   Widget build(BuildContext context) {
-    final errorMessage = context.watch<AuthModel>().errorMessage.toString();
-    if (errorMessage.isEmpty || errorMessage == "null")
-      return const SizedBox.shrink();
+    final errorMessage = context.select((AuthViewModel m) => m.errorMessage);
+    if (errorMessage == "null") return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Text(
-        errorMessage,
+        errorMessage.toString(),
         style: const TextStyle(color: Colors.red, fontSize: 17),
       ),
     );

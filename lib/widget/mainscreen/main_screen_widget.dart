@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/widget/auth/auth_model.dart';
-import 'package:flutter_application_1/widget/movieList/movie_list_widget.dart';
-import 'package:provider/provider.dart';
-
-import '../../domain/data_provider/session_data_providers.dart';
-import '../movieList/movie_list_model.dart';
+import 'package:flutter_application_1/domain/data_provider/session_data_providers.dart';
+import 'package:flutter_application_1/domain/factory/screen_factory.dart';
 
 class MainScreenWidget extends StatefulWidget {
   const MainScreenWidget({super.key});
@@ -14,8 +10,8 @@ class MainScreenWidget extends StatefulWidget {
 }
 
 class _MainScreenWidgetState extends State<MainScreenWidget> {
+  static final _screenFactory = ScreenFactory();
   int _selectedTab = 0;
-  MovieListModel modelMovies = MovieListModel();
 
   void onSelectedTab(int index) {
     if (_selectedTab == index) return;
@@ -25,32 +21,22 @@ class _MainScreenWidgetState extends State<MainScreenWidget> {
   }
 
   @override
-  void didChangeDependencies() {
-    // modelMovies.loadMovies();
-    // modelMovies.setupLocale(context);
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("mainscreen"), actions: [
         IconButton(
-          onPressed: () => SessionDataProvider().setSessionId(null),
+          onPressed: () => {},
           icon: const Icon(Icons.search),
         )
       ]),
       body: IndexedStack(
         index: _selectedTab,
-        children: const [
-          Text(
+        children: [
+          const Text(
             'Index 0: Новости',
           ),
-          MovieListWidget(),
-          Text(
-            'Index 1: Фильмы',
-          ),
-          Text(
+          _screenFactory.makeMovieList(),
+          const Text(
             'Index 2: Сериалы',
           ),
         ],

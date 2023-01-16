@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/Navigation/navigation.dart';
 import 'package:flutter_application_1/domain/api_client/api_client.dart';
-import 'package:flutter_application_1/resources/resources.dart';
-import 'package:flutter_application_1/widget/movieTrailer/movie_trailer.dart';
 import 'package:flutter_application_1/widget/movie_datails/movie_details_model.dart';
 import 'package:provider/provider.dart';
 
@@ -50,10 +47,10 @@ class _ActorListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<MovieDetailsModel>();
-    var actor = model.movieDetails?.credits.cast;
+    var actor = model.movieDetails?.details.credits.cast;
     if (actor == null || actor.isEmpty) return const SizedBox.shrink();
     return ListView.builder(
-        itemCount: 20,
+        itemCount: actor.length,
         itemExtent: 120,
         scrollDirection: Axis.horizontal,
         itemBuilder: (BuildContext context, int index) {
@@ -72,7 +69,7 @@ class _ActorListItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = context.read<MovieDetailsModel>();
-    final actor = model.movieDetails!.credits.cast[actorIndex];
+    final actor = model.movieDetails!.details.credits.cast[actorIndex];
     final profilePath = actor.profilePath;
     return Padding(
       padding: const EdgeInsets.all(10.0),
